@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
-import requests, sys, json, time, lxml
+import requests, sys, json, time, lxml, fpdf
 
 # Grab the algorithms page of LeetCode and wait (2.5 s) for problems 
 # to dynamically load using selenium
@@ -26,18 +26,43 @@ questionLinks = []
 for q in questionsList:
     for a in q.find_all('a', href=lambda href: href and "/problem" in href):
         # print(a['href'])
-        questionLinks.append(a['href'])
+        if a.next_sibling.next_sibling:
+                continue
+        else:
+                questionLinks.append(a['href'])
 
+# file=open('testfile.txt','w', encoding='utf-8') 
+pdf = fpdf.FPDF(format='letter')
+pdf.add_font('Arial', '', 'C:\Windows\Fonts\Arial.ttf', uni=True)
+pdf.set_font('Arial', '', 12)
+
+startNum=1
+endNum=50
 for urlQuestion in questionLinks:
-    # print(urlQuestion)
+    if startNum > endNum:
+        pdf.output("LC-Questions_" + str(startNum) + "-" + str(endNum) + ".pdf")
+        pdf = fpdf.FPDF(format='letter')
+        pdf.add_font('Arial', '', 'C:\Windows\Fonts\Arial.ttf', uni=True)
+        pdf.set_font('Arial', '', 12)
+        endNum += 50
+    print(urlQuestion)
     browser.implicitly_wait(30)
     browser.get("https://leetcode.com/" + urlQuestion)
     browser.find_element_by_class_name("content__u3I1")
     soup_level2 = BeautifulSoup(browser.page_source, 'lxml')
     question = soup_level2.find_all('div', class_='content__u3I1')
+    title = soup_level2.find(id='question-title')
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.write(5, title.text)
+    pdf.ln()
+    pdf.ln()
     for qst in question:
-        print(qst.text)
+        pdf.write(5, qst.text)
+    startNum += 1
 
+# file.close()
+pdf.output("LC-Questions_" + startNum + "-" + endNum + ".pdf")
 
 
 
