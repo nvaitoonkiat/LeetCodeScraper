@@ -11,33 +11,29 @@ browser.implicitly_wait(30)
 browser.get(urlMain)
 browser.find_element_by_class_name("question-list-table")
 browser.find_element_by_xpath("//*[@id='question-app']/div/div[2]/div[2]/div[2]/table/tbody[2]/tr/td/span/select/option[@value='9007199254740991']").click()
-# 
+
 # Use BeautifulSoup4 to extract HTML source code for 
-# links to each question and intialize array to store them
+# links to each question and intialize array to store them 
 soup = BeautifulSoup(browser.page_source, 'lxml')
 questionsList = soup.find_all('tbody', class_='reactable-data')
 questionLinks = []
 
-# with open('scrape.txt', 'w', encoding='utf-8') as file:
-#     # file.write(text)
-#     # file.write(element.text)
-#     file.write(soup.prettify())
 
 for q in questionsList:
     for a in q.find_all('a', href=lambda href: href and "/problem" in href):
-        # print(a['href'])
         if a.next_sibling.next_sibling:
-                continue
+            continue
         else:
-                questionLinks.append(a['href'])
+            questionLinks.append(a['href'])
 
-# file=open('testfile.txt','w', encoding='utf-8') 
+
+# Prints questions out into a blank pdf page. On every 50 questions, open and write to a new file.
 pdf = fpdf.FPDF(format='letter')
 pdf.add_font('Arial', '', 'C:\Windows\Fonts\Arial.ttf', uni=True)
 pdf.set_font('Arial', '', 12)
-
 startNum=1
 endNum=50
+
 for urlQuestion in questionLinks:
     if startNum > endNum:
         pdf.output("LC-Questions_" + str(startNum) + "-" + str(endNum) + ".pdf")
@@ -60,10 +56,7 @@ for urlQuestion in questionLinks:
     for qst in question:
         pdf.write(5, qst.text)
     startNum += 1
-
-# file.close()
 pdf.output("LC-Questions_" + startNum + "-" + endNum + ".pdf")
 
-
-
+# Exit program
 browser.quit()
